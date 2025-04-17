@@ -32,6 +32,8 @@ int LifetimeManager::start() {
     int total_time_elapsed = 0;
     int jobs_dispatched = 0;
 
+    int job_available = 0;
+
     while (!events.empty()) {
         // assign works to available server
         event latest_event = events.top();
@@ -41,11 +43,38 @@ int LifetimeManager::start() {
             if (jobs_dispatched >= total_jobs) {
                 continue;
             }
+            job_available += 1;
 
-            // TODO: generate arrival time and assign to server
+            // generate next arrival
 
+            const double inter = inter_arrival.start +
+                                 (double)rand() / (RAND_MAX) *
+                                     (inter_arrival.end - inter_arrival.start);
+            events.emplace(event{
+                time : latest_event.time + inter,
+                instruction : "arrival"
+            });
+
+        } else if (latest_event.instruction == "job_finish") {
+            // TODO: handle event finished
         } else {
             printf("Undefined instruction in LifetimeManager\n");
+        }
+
+        if (job_available > 0) {
+            // push job into servers
+            for (auto s : servers) {
+                if (s.available(latest_event.time)) {
+                    s.picked(latest_event.time);
+                    // push finish time to timestamp(event)
+                    events.emplace(event{
+                        time : s.finishing_time(),
+                        instruction : "job_finish"
+                    });
+                    job_available -= 1;
+                    break;
+                }
+            }
         }
     }
 

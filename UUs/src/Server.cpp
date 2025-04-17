@@ -11,16 +11,18 @@ Server::Server(int service_time_generated_from, int service_time_generated_to) {
 void Server::picked(double now_time) {
     // generate time randomly
 
-    const double inter_arrival =
+    const double service_time =
         service_time_generated_from +
         (double)rand() / (RAND_MAX) *
             (service_time_generated_to - service_time_generated_from);
 
     processing_from = now_time;
-    processing_to = now_time + inter_arrival;
+    processing_to = now_time + service_time;
 
     return;
 }
+
+double Server::finishing_time() { return processing_to; }
 
 bool Server::available(double now_time) {
     // only checking the right bound

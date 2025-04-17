@@ -18,6 +18,7 @@ class Server {
 
     bool available(double);
     void picked(double);
+    double finishing_time();
 };
 
 #endif
