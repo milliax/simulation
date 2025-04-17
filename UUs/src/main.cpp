@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <ctime>
+
 #include "LifetimeManager.h"
 
 int main() {
+    std::srand(time(NULL));
     printf("Hello, World!\n");
 
     // ask for the inputs
@@ -24,15 +27,20 @@ int main() {
 
     int total_time_spent = 0;
 
-    for(int i = 0;i < n;++i){
-        // this is the total job times
-        LifetimeManager env = LifetimeManager();
+    // for (int i = 0; i < n; ++i) {
+    // this is the total job times
+    LifetimeManager env = LifetimeManager();
 
-        
+    env.config(argument{
 
-        // total_time_spent += time;
+    });
 
-    }
+    int time_spent = env.start();
+
+    total_time_spent += time_spent;
+    // }
+
+    printf("Average Time Consumed: %f", (double)total_time_spent / n);
 
     return 0;
 }
