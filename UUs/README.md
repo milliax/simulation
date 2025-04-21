@@ -1,5 +1,9 @@
 # UUs simulation
 
+## Debugging
+
+You can enable debugging rules in struct.h
+
 ## Target
 
 to build a simulation system that can handle UUs.
@@ -19,13 +23,7 @@ to receive the arguments.
 
 ### lifetime_manager
 
-2 approaches I thought of.
-
-1. the easiest loop
-    
-    the loop of index is the time.
-
-2. time discreted
+time discreted
 
     Store up coming events with time and what would happen when time comes. (sorted) (priority queue)
     Do that in the next iteration.
@@ -33,3 +31,15 @@ to receive the arguments.
 ### server
 
 the processing server that record the start time and end time for the server.
+
+### struct.h
+
+define all the structs used in this program
+
+### excutables
+
+```
+make
+```
+
+then main or main.exe is what you want
