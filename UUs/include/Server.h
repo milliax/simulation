@@ -3,21 +3,20 @@
 
 #include <cstdlib>
 
+#include "struct.h"
+
 using namespace std;
 
 class Server {
    private:
-    double service_time_generated_from;
-    double service_time_generated_to;
-
     double processing_from;
     double processing_to;
 
    public:
-    Server(int, int) {};
+    Server();
 
     bool available(double);
-    void picked(double);
+    double picked(double, work);
     double finishing_time();
 };
 
