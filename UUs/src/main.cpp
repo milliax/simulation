@@ -20,8 +20,6 @@ int main() {
     // s = 1;
     // n = 5;
 
-    int total_time_spent = 0;
-
     LifetimeManager env = LifetimeManager();
 
     cout << "Please input the following parameters: " << endl;
@@ -37,13 +35,12 @@ int main() {
     cin >> n;
     cout << "Number of servers: ";
     cin >> s;
-    printf("Inter-arrival time start: %d\n", a);
-    printf("Inter-arrival time end: %d\n", b);
-    printf("Service time start: %d\n", c);
-    printf("Service time end: %d\n", d);
-    printf("Number of jobs: %d\n", n);
-    printf("Number of servers: %d\n", s);
-    printf("Total time spent: %d\n", total_time_spent);
+    // printf("Inter-arrival time start: %d\n", a);
+    // printf("Inter-arrival time end: %d\n", b);
+    // printf("Service time start: %d\n", c);
+    // printf("Service time end: %d\n", d);
+    // printf("Number of jobs: %d\n", n);
+    // printf("Number of servers: %d\n", s);
     printf("====================================\n");
 
     env.config(argument{
