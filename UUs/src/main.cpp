@@ -23,6 +23,7 @@ int main() {
     LifetimeManager env = LifetimeManager();
 
     cout << "Please input the following parameters: " << endl;
+    
     cout << "Inter-arrival time start: ";
     cin >> a;
     cout << "Inter-arrival time end: ";
@@ -31,10 +32,10 @@ int main() {
     cin >> c;
     cout << "Service time end: ";
     cin >> d;
-    cout << "Number of jobs: ";
-    cin >> n;
     cout << "Number of servers: ";
     cin >> s;
+    cout << "Number of jobs: ";
+    cin >> n;
     // printf("Inter-arrival time start: %d\n", a);
     // printf("Inter-arrival time end: %d\n", b);
     // printf("Service time start: %d\n", c);

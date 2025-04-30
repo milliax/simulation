@@ -5,9 +5,9 @@
 
 using namespace std;
 
-const bool show_iteration = false;
-const bool show_dispatch_info = false;
-const bool show_arrival_info = false;
+const bool show_iteration = true;
+const bool show_dispatch_info = true;
+const bool show_arrival_info = true;
 
 struct argument {
     int inter_arrival_start;
