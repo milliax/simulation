@@ -1,10 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# ==== 參數設定(與問題相關) ====
-NUM_JOB = 100           # 工件個數
-NUM_MACHINE = 3         # 處理器個數
-
 # 加工時間矩陣 (100 jobs x  Content edited for clarity processors)
 pTime = [
     [80, 74, 130], [256, 20, 94], [67, 115, 18], [167, 6, 243], [39, 206, 238],
@@ -45,18 +41,18 @@ pTime = [
 ]
 
 # ==== 參數設定(與演算法相關) ====
-NUM_ITERATION = 1000     # 世代數
-NUM_CHROME = 245           # 染色體個數
-NUM_BIT = NUM_JOB          # 染色體長度 (工件數)
+NUM_ITERATION = 2000     # 世代數
+NUM_CHROME = 300         # 染色體個數
+NUM_BIT = 100            # 染色體長度 (工件數)
 Pc = 0.755                 # 交配率
-Pm = 0.0048                # 突變率
+Pm = 0.0048               # 突變率
 
 NUM_PARENT = NUM_CHROME
 NUM_CROSSOVER = int(Pc * NUM_CHROME / 2)
 NUM_CROSSOVER_2 = NUM_CROSSOVER * 2
 NUM_MUTATION = int(Pm * NUM_CHROME * NUM_BIT)
 
-np.random.seed(0)
+np.random.seed()
 
 # ==== 基因演算法函式 ====
 
@@ -65,7 +61,6 @@ def initPop():  # 初始化群體
     for _ in range(NUM_CHROME):
         p.append(np.random.permutation(NUM_BIT))  # 隨機排列 0 到 NUM_JOB-1
     return p
-
 
 def fitFunc(x):  # 適應度函數
     # combine pTime with order x
@@ -160,17 +155,55 @@ pop_fit = evaluatePop(pop)
 best_outputs = [np.max(pop_fit)]
 mean_outputs = [np.average(pop_fit)]
 
-for i in range(NUM_ITERATION):
-    parent = selection(pop, pop_fit)
-    offspring = crossover_uniform(parent)
-    mutation(offspring)
-    offspring_fit = evaluatePop(offspring)
-    pop, pop_fit = replace(pop, pop_fit, offspring, offspring_fit)
-    # 將最佳染色體的工件編號從 0-based 轉為 1-based
-    best_permutation = [job + 1 for job in pop[0]]
-    best_outputs.append(np.max(pop_fit))
-    mean_outputs.append(np.average(pop_fit))
-    print(f'iteration {i}: makespan = {-pop_fit[0]}, permutation = {pop[0]}')
+
+best_permutation = []
+best_makespan = 1e10
+
+outer_loop = 0
+
+with open('best_makespan.txt', 'r') as f:
+    # get the number from the file
+    best_makespan = int(f.read()) 
+
+while(True):
+    outer_loop += 1
+
+    iter_num = NUM_ITERATION
+
+    if outer_loop > 1:
+        iter_num = 1000
+
+    for i in range(iter_num):
+        parent = selection(pop, pop_fit)
+        offspring = crossover_uniform(parent)
+        mutation(offspring)
+        offspring_fit = evaluatePop(offspring)
+        pop, pop_fit = replace(pop, pop_fit, offspring, offspring_fit)
+        # 將最佳染色體的工件編號從 0-based 轉為 1-based
+        best_permutation = [job + 1 for job in pop[0]]
+        best_outputs.append(np.max(pop_fit))
+        mean_outputs.append(np.average(pop_fit))
+        
+        
+        print(f'o: {outer_loop} iteration {i}: makespan = {-pop_fit[0]}, permutation = {pop[0]}')
+
+        if -pop_fit[0] < best_makespan:
+            best_makespan = -pop_fit[0]
+            best_permutation = pop[0]
+
+            with open('best_permutation.txt', 'w') as f:
+                f.write(' '.join(map(str, best_permutation)))
+            with open('best_makespan.txt', 'w') as f:
+                f.write(str(best_makespan))
+
+    # add random pop into the population
+
+    new_random_pop = initPop()
+
+    mid = int(NUM_CHROME / 2)
+    pop = pop[:mid] + new_random_pop[:NUM_CHROME - mid]
+
+
 
 # 畫圖
 plt.plot(best_outputs, label='Best Fitness')

@@ -1,0 +1,203 @@
+// Genetic Algorithm with corrected fitness index (no +1 offset)
+int NUM_JOB = 100;
+int NUM_CHROME = 200;
+int NUM_ITER = 1000;
+double Pc = 0.75;
+double Pm = 0.005;
+
+double tempCross = Pc * NUM_CHROME / 2;
+int NUM_CROSS = tempCross * 2;
+double tempMut = Pm * NUM_CHROME * NUM_JOB;
+int NUM_MUTATION = tempMut;
+
+for (int i = 1; i <= NUM_CHROME; i++) {
+    for (int j = 1; j <= NUM_JOB; j++) {
+    	Table("Population")[i][j] = j;
+    }
+    for (int j = NUM_JOB; j >= 2; j--) {
+        int k = 1 + floor(uniform(0, j));
+        int temp = Table("Population")[i][j];
+        int val = Table("Population")[i][k];
+        
+        Table("Population")[i][j] = val;
+        Table("Population")[i][k] = temp;
+    }
+
+    double m1 = 0;
+    double m2 = 0;
+    double m3 = 0;
+    for (int j = 1; j <= NUM_JOB; j++) {
+    	int jobID = Table("Population")[i][j];
+		
+		int p1 = Table("Job")[jobID][1];
+		int p2 = Table("Job")[jobID][2];
+    	int p3 = Table("Job")[jobID][3];
+    	
+        if (j == 1) {
+        	m1 = p1;
+        	m2 = m1 + p2;
+        	m3 = m2 + p3;
+        }else{
+        	m1 = max(m1 + p1, m2);
+        	m2 = max(m1 + p2, m3);
+			m3 = m2 + p3;
+		}
+    }
+    Table("Fitness")[i][1] = -m3;
+}
+
+for (int iter = 1; iter <= NUM_ITER; iter++) {
+    for (int i = 1; i <= NUM_CHROME; i++) {
+        int a = 1 + floor(uniform(0, NUM_CHROME));
+        int b = 1 + floor(uniform(0, NUM_CHROME));
+        
+        int fa = Table("Fitness")[a][1];
+        int fb = Table("Fitness")[b][1];
+        
+        int winner = (fa > fb) ? a : b;
+        for (int j = 1; j <= NUM_JOB; j++) {
+        	Table("Population")[i][j] = Table("Population")[winner][j];
+        }
+    }
+
+    for (int k = 1; k <= NUM_CROSS / 2; k++) {
+        int p1 = 1 + floor(uniform(0, NUM_CHROME));
+        int p2 = 1 + floor(uniform(0, NUM_CHROME));
+        int out1 = k * 2 - 1;
+        int out2 = k * 2;
+
+        for (int j = 1; j <= NUM_JOB; j++) {
+        	Table("Population")[out1][j] = -1;
+        	Table("Population")[out2][j] = -1;
+        }
+
+        for (int j = 1; j <= NUM_JOB; j++) {
+        	int g1 = Table("Population")[p1][j];
+        	int g2 = Table("Population")[p2][j];
+        	
+            if (uniform(0, 1) < 0.5) {
+            	Table("Population")[out1][j] = g1;
+            	Table("Population")[out2][j] = g2;
+            } else {
+            	Table("Population")[out1][j] = g2;
+            	Table("Population")[out2][j] = g1;
+            }
+        }
+
+        for (int r = 0; r < 2; r++) {
+            int row = (r == 0) ? out1 : out2;
+            for (int i = 1; i <= NUM_JOB; i++) {
+            	int gene = Table("Population")[row][i];
+                int count = 0;
+                for (int j = 1; j <= NUM_JOB; j++) {
+                    if (Table("Population")[row][j] == gene){
+                    	count++;
+                    }
+                }
+                if (count > 1 || gene <= 0 || gene > NUM_JOB) {
+                    for (int k = 1; k <= NUM_JOB; k++) {
+                        int exists = 0;
+                        for (int j = 1; j <= NUM_JOB; j++) {
+                            if (Table("Population")[row][j] == k) {
+                            	exists = 1;
+                            	break;
+                            }
+                        }
+                        if (exists == 0) {
+                        	Table("Population")[row][i] = k;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (int row = 1; row <= NUM_CHROME; row++) {
+        for (int i = 1; i <= NUM_JOB; i++) {
+        	int gene = Table("Population")[row][i];
+            if (gene <= 0 || gene > NUM_JOB) {
+                for (int k = 1; k <= NUM_JOB; k++) {
+                    int exists = 0;
+                    for (int j = 1; j <= NUM_JOB; j++) {
+                        if (Table("Population")[row][j] == k) {
+                        	exists = 1;
+                        	break;
+                        }
+                    }
+                    if (exists == 0) {
+                    	Table("Population")[row][i] = k;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    for (int m = 1; m <= NUM_MUTATION; m++) {
+        int row = 1 + floor(uniform(0, NUM_CHROME));
+        int i = 1 + floor(uniform(0, NUM_JOB));
+        int j = 1 + floor(uniform(0, NUM_JOB));
+        
+		int vi = Table("Population")[row][i];
+		int vj = Table("Population")[row][j];
+        
+        if (vi > 0 && vj > 0) {
+        	Table("Population")[row][i] = vj;
+        	Table("Population")[row][j] = vi;
+        }
+    }
+
+    for (int i = 1; i <= NUM_CHROME; i++) {
+        double m1 = 0;
+        double m2 = 0;
+        double m3 = 0;
+        for (int j = 1; j <= NUM_JOB; j++) {
+        	int jobID = Table("Population")[i][j];
+        	int p1 = Table("Job")[jobID][1];
+        	int p2 = Table("Job")[jobID][2];
+        	int p3 = Table("Job")[jobID][3];
+            if (j == 1) {
+            	m1 = p1;
+            	m2 = m1 + p2;
+            	m3 = m2 + p3;
+            } else {
+            	m1 = max(m1 + p1, m2);
+            	m2 = max(m1 + p2, m3);
+            	m3 = m2 + p3;
+            }
+        }
+        Table("Fitness")[i][1] = -m3;
+    }
+
+    int bestIndex = 1;
+    int besFitNow = Table("Fitness")[1][1];
+    
+    for (int i = 2; i <= NUM_CHROME; i++) {
+    	int fit = Table("Fitness")[i][1];
+        if (fit > besFitNow) {
+            besFitNow = fit;
+            bestIndex = i;
+        }
+    }
+    // print("Iteration ", iter, ": Best makespan = ", -bestFitNow);
+}
+
+int bestRow = 1;
+int bestOverallFit = Table("Fitness")[1][1];
+for (int i = 2; i <= NUM_CHROME; i++) {
+	int fit = Table("Fitness")[i][1];
+    if (fit > bestOverallFit) {
+        bestOverallFit = fit;
+        bestRow = i;
+    }
+}
+
+// 寫入最佳染色體索引
+// Table("BestIndex")[1][1] = bestRow;
+
+// 將最佳染色體對應寫回 Job 表 col 4
+for (int j = 1; j <= NUM_JOB; j++) {
+	int jobID = Table("Population")[bestRow][j];
+	Table("Job")[jobID][4] = j;
+}
