@@ -73,17 +73,15 @@ if __name__ == "__main__":
             a = AreaDispatcher(
                 number_of_workers=1,
                 machines=layout[key][area],
-                total_processing_time=1000,
+                total_processing_time=86400,
                 area_name=area,
             )
             result = a.dispatch()
-            
-            break
+            print(f"  Total processing time: {result}")
             # for machine in dictionary[key][area]:
             #     print(f"    Machine: {machine['machine']}")
             #     print(f"      Processing time: {machine['processing_time']}")
             #     print(f"      Load/unload time: {machine['load_unload_time']}")
-            print(f"Total waiting time: {result}")
         break
     
 

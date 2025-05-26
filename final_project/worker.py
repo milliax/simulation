@@ -16,7 +16,4 @@ class Worker:
         self.working_start = time
         self.working_end = time + work_duration
 
-        print(f"Worker picked at time {self.working_start} and will finish at {self.working_end}")
-        print()
-
         return self.working_end

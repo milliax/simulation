@@ -1,7 +1,11 @@
+import os
 import heapq
 
 from type import Event, Job, EventStatus
 from worker import Worker
+
+from dotenv import load_dotenv
+load_dotenv()
 
 
 class AreaDispatcher:
@@ -18,8 +22,11 @@ class AreaDispatcher:
 
     def dispatch(self) -> int:
         # Placeholder for dispatch logic
-        print(
-            f"Dispatching for area: {self.area_name} with {self.number_of_workers} workers")
+        isDebug = os.getenv("DEBUG") == "true"
+
+        if (isDebug):
+            print(
+                f"Dispatching for area: {self.area_name} with {self.number_of_workers} workers")
         # Here you would implement the actual dispatch logic
 
         # print(f"Machines: {self.machines}")
@@ -43,9 +50,9 @@ class AreaDispatcher:
         while self.events:
             # Get the job with the highest priority (lowest priority number)
             current_event: Event = heapq.heappop(self.events)
-
-            print(f"Current time: {current_event.time}")
-            print(f"Processing event: {current_event}")
+            if (isDebug):
+                print(f"Current time: {current_event.time}")
+                print(f"Processing event: {current_event}")
 
             if current_event.time >= self.total_processing_time:
                 # If the current event time exceeds the total processing time, stop processing
@@ -53,19 +60,20 @@ class AreaDispatcher:
                 # TODO: deal with the remaining jobs in the queue
                 break
 
-
             if (current_event.status == EventStatus.JOB_COMES):
                 # push to job queue
 
                 machine_property = next(
                     (m for m in self.machines if m['machine'] == current_event.machine_name), None)
                 if machine_property is None:
-                    print(
-                        f"Machine {current_event.machine_name} not found in area {self.area_name}")
+                    if (isDebug):
+                        print(
+                            f"Machine {current_event.machine_name} not found in area {self.area_name}")
                     continue
 
-                print(
-                    f"Added a job to the queue for machine {machine_property["machine"]} at time {current_event.time}")
+                if (isDebug):
+                    print(
+                        f"Added a job to the queue for machine {machine_property["machine"]} at time {current_event.time}")
 
                 self.job_queue.append(Job(
                     produced_time=current_event.time,
@@ -81,8 +89,9 @@ class AreaDispatcher:
                 machine_property = next(
                     (m for m in self.machines if m['machine'] == current_event.machine_name), None)
                 if machine_property is None:
-                    print(
-                        f"Machine {current_event.machine_name} not found in area {self.area_name}")
+                    if (isDebug):
+                        print(
+                            f"Machine {current_event.machine_name} not found in area {self.area_name}")
                     continue
 
                 total_waiting_time += current_event.time - \
@@ -92,14 +101,15 @@ class AreaDispatcher:
                 heapq.heappush(self.events, Event(
                     machine_name=machine_property['machine'],
                     # Initial time for the machine
-                    time=machine_property['processing_time'],
+                    time=machine_property['processing_time'] +
+                    current_event.time,
                     status=EventStatus.JOB_COMES,
                 ))
 
-
             # check if there are jobs in the queue
             if not self.job_queue:
-                print("No jobs in the queue, waiting for new jobs.")
+                if (isDebug):
+                    print("No jobs in the queue, waiting for new jobs.")
                 continue
 
             # find out the available worker
@@ -109,12 +119,13 @@ class AreaDispatcher:
                 if (self.job_queue):
                     # if job queue is not empty
 
-                    print("There is a job")
+                    # print("There is a job")
 
                     if worker.available(current_event.time):
-                        print(
-                            f"Worker {worker} is available at time {current_event.time}")
-                        print("")
+                        if (isDebug):
+                            print(
+                                f"Worker {worker} is available at time {current_event.time}")
+                            print("")
                         # Get the next job from the queue
                         # this worker is available
                         job = self.job_queue.pop(0)
@@ -122,12 +133,18 @@ class AreaDispatcher:
                         machine_property = next(
                             (m for m in self.machines if m['machine'] == job.machine_name), None)
                         if machine_property is None:
-                            print(
-                                f"Machine {job.machine_name} not found in area {self.area_name}")
+                            if (isDebug):
+                                print(
+                                    f"Machine {job.machine_name} not found in area {self.area_name}")
                             continue
 
                         worker.picked(current_event.time,
                                       machine_property['load_unload_time'])
+
+                        if (isDebug):
+                            print(
+                                f"Worker {worker} picked job {job} at time {current_event.time} for machine {job.machine_name} will finish at {worker.working_end}")
+                            print("")
 
                         heapq.heappush(self.events, Event(
                             machine_name=job.machine_name,
@@ -136,7 +153,8 @@ class AreaDispatcher:
                             status=EventStatus.WORKER_ENDS,
                         ))
 
-        print(
-            f"Total waiting time for area {self.area_name}: {total_waiting_time}")
+        if (isDebug):
+            print(
+                f"Total waiting time for area {self.area_name}: {total_waiting_time}")
 
         return total_waiting_time
