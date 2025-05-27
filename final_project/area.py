@@ -20,6 +20,10 @@ class AreaDispatcher:
         self.total_processing_time = total_processing_time
         self.area_name = area_name
 
+        self.events: list[Event] = []
+        self.job_queue: list[Job] = []
+        
+
     def dispatch(self) -> int:
         # Placeholder for dispatch logic
         isDebug = os.getenv("DEBUG") == "true"
@@ -75,6 +79,8 @@ class AreaDispatcher:
                     print(
                         f"Added a job to the queue for machine {machine_property["machine"]} at time {current_event.time}")
 
+                process_end[current_event.machine_name] = current_event.time
+
                 self.job_queue.append(Job(
                     produced_time=current_event.time,
                     # Placeholder for job duration
@@ -82,7 +88,6 @@ class AreaDispatcher:
                     machine_name=current_event.machine_name
                 ))
 
-                process_end[current_event.machine_name] = current_event.time
 
             elif (current_event.status == EventStatus.WORKER_ENDS):
                 # count the waiting time
