@@ -66,8 +66,8 @@ if __name__ == "__main__":
 
         layout[instance][area].append({
             "machine": machine,
-            "processing_time": processing_time,
-            "load_unload_time": load_unload_time
+            "processing_time": processing_time * 60,
+            "load_unload_time": load_unload_time * 60
         })
 
     # print(dictionary)
