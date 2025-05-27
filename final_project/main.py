@@ -182,7 +182,7 @@ if __name__ == "__main__":
             #     print(f"      Load/unload time: {machine['load_unload_time']}")
 
         print(
-            f"Best permutation: {best_permutation} with time {minimum_waiting_time}")
+            f"Best permutation: {best_permutation} with time {minimum_waiting_time/60} minutes")
 
     # print(f"caching: {caching}")
 
