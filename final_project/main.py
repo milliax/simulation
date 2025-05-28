@@ -33,6 +33,8 @@ if __name__ == "__main__":
         print("Database query returned no results.")
         exit(1)
 
+    # print(query2)
+
     for q in query2:
         i = {
             "id": q[0],
@@ -82,6 +84,8 @@ if __name__ == "__main__":
     }
     
     """
+
+    result_to_write: list[dict[str, int | str]] = []
 
     for e in iter:
         print(f"Instance: {e['id']}")
@@ -156,9 +160,11 @@ if __name__ == "__main__":
                     )
 
                     result = a.dispatch()
+
                     if isDev:
                         print(
                             f"  Processing time for area {tied[1]} with {tied[0]} time: {result}")
+
                     sum += result
 
                     caching.setdefault(tied[1], {})[tied[0]] = result
@@ -174,12 +180,25 @@ if __name__ == "__main__":
                     p = permutations
 
                 if isDev:
-                    print(f"Total processing time: {sum}, with permutation: {p}")
+                    print(
+                        f"Total processing time: {sum}, with permutation: {p}")
 
             # for machine in dictionary[key][area]:
             #     print(f"    Machine: {machine['machine']}")
             #     print(f"      Processing time: {machine['processing_time']}")
             #     print(f"      Load/unload time: {machine['load_unload_time']}")
+
+        result_to_write.append({
+            "INSTANCE": e["id"],
+            "AVERAGE_IDLE_TIME": int(minimum_waiting_time/60),
+            "STAFF_IN_AREA1": best_permutation[0],
+            "STAFF_IN_AREA2": best_permutation[1],
+            "STAFF_IN_AREA3": best_permutation[2],
+
+            "DISPATCH_IN_AREA1": "FIFO",
+            "DISPATCH_IN_AREA2": "FIFO",
+            "DISPATCH_IN_AREA3": "FIFO",
+        })
 
         print(
             f"Best permutation: {best_permutation} with time {minimum_waiting_time/60} minutes")
@@ -187,10 +206,67 @@ if __name__ == "__main__":
     # print(f"caching: {caching}")
 
     """ write result back to database """
-    # db = Database(user="TEAM_11",
-    #               password="team11",
-    #               hostname="140.113.59.168")
+    db = Database(user="TEAM_11",
+                  password="team11",
+                  hostname="140.113.59.168")
 
-    # db.connect()
+    db.connect()
 
-    # query = db.execute_query("SELECT * FROM SIM_STUDENT. SIM_ALLOCATE_DISPATCH_1")
+    print("Writing results to database...")
+    print(result_to_write)
+
+    for result in result_to_write:
+        result = db.execute_query("""MERGE INTO RESULT_TEMPLATE dst
+USING (
+    SELECT
+        :instance AS INSTANCE,
+        :average_idle_time AS AVERAGE_IDLE_TIME,
+        :staff_area1 AS STAFF_IN_AREA1,
+        :staff_area2 AS STAFF_IN_AREA2,
+        :staff_area3 AS STAFF_IN_AREA3,
+        :dispatch_area1 AS DISPATCH_IN_AREA1,
+        :dispatch_area2 AS DISPATCH_IN_AREA2,
+        :dispatch_area3 AS DISPATCH_IN_AREA3
+    FROM dual
+) src
+ON (dst.INSTANCE = src.INSTANCE)
+WHEN MATCHED THEN
+    UPDATE SET
+        dst.AVERAGE_IDLE_TIME = src.AVERAGE_IDLE_TIME,
+        dst.STAFF_IN_AREA1 = src.STAFF_IN_AREA1,
+        dst.STAFF_IN_AREA2 = src.STAFF_IN_AREA2,
+        dst.STAFF_IN_AREA3 = src.STAFF_IN_AREA3,
+        dst.DISPATCH_IN_AREA1 = src.DISPATCH_IN_AREA1,
+        dst.DISPATCH_IN_AREA2 = src.DISPATCH_IN_AREA2,
+        dst.DISPATCH_IN_AREA3 = src.DISPATCH_IN_AREA3
+WHEN NOT MATCHED THEN
+    INSERT (
+        INSTANCE,
+        AVERAGE_IDLE_TIME,
+        STAFF_IN_AREA1,
+        STAFF_IN_AREA2,
+        STAFF_IN_AREA3,
+        DISPATCH_IN_AREA1,
+        DISPATCH_IN_AREA2,
+        DISPATCH_IN_AREA3
+    )
+    VALUES (
+        src.INSTANCE,
+        src.AVERAGE_IDLE_TIME,
+        src.STAFF_IN_AREA1,
+        src.STAFF_IN_AREA2,
+        src.STAFF_IN_AREA3,
+        src.DISPATCH_IN_AREA1,
+        src.DISPATCH_IN_AREA2,
+        src.DISPATCH_IN_AREA3
+    )""", {"instance": result["INSTANCE"],
+            "average_idle_time": result["AVERAGE_IDLE_TIME"],
+            "staff_area1": result["STAFF_IN_AREA1"],
+            "staff_area2": result["STAFF_IN_AREA2"],
+            "staff_area3": result["STAFF_IN_AREA3"],
+            "dispatch_area1": result["DISPATCH_IN_AREA1"],
+            "dispatch_area2": result["DISPATCH_IN_AREA2"],
+            "dispatch_area3": result['DISPATCH_IN_AREA3']})
+
+    db.close()
+    print("Results written to database successfully.")

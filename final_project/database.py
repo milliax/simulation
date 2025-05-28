@@ -2,6 +2,7 @@
 
 import cx_Oracle
 
+
 class Database:
     def __init__(self, user, password, hostname):
         self.user = user
@@ -30,13 +31,22 @@ class Database:
             self.connection.close()
             print("Connection closed")
 
-    def execute_query(self, query):
+    def execute_query(self, query, params=None):
         if self.connection:
             cursor = self.connection.cursor()
             try:
-                cursor.execute(query)
-                result = cursor.fetchall()
-                return result
+                if params is None:
+                    params = {}
+                # print(query, params)
+                cursor.execute(query, params)
+
+                # Only fetch results if it's a SELECT
+                if query.strip().lower().startswith("select"):
+                    result = cursor.fetchall()
+                    return result
+                else:
+                    self.connection.commit()  # commit for INSERT/UPDATE/MERGE
+                    return None
             except cx_Oracle.DatabaseError as e:
                 error, = e.args
                 print(f"Error code: {error.code}")
