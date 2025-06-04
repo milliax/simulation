@@ -23,6 +23,15 @@ class AreaDispatcher:
         self.events: list[Event] = []
         self.job_queue: list[Job] = []
         
+        # write data with filename {area_name}-{number_of_workers}-{total_processing_time}.csv
+        self.foldername = "results"
+        self.filename = f"{area_name}-{number_of_workers}-{total_processing_time}.csv"
+
+        self.file = open(f"results/{self.filename}", "w")
+        # clear the data
+        self.file.truncate(0)
+        # write the header
+        self.file.write("Machine,Processing Start,Processing End,Loading Start,Loading End\n")
 
     def dispatch(self) -> int:
         # Placeholder for dispatch logic
@@ -102,6 +111,15 @@ class AreaDispatcher:
                 total_waiting_time += current_event.time - \
                     process_end[current_event.machine_name] - \
                     machine_property["load_unload_time"]
+
+                if (isDebug):
+                    print(
+                        f"Worker finished job for machine {current_event.machine_name} at time {current_event.time}, waiting time: {total_waiting_time}")
+
+                # write to file
+                self.file.write(
+                    f"{current_event.machine_name},{process_end[current_event.machine_name]},{current_event.time},{current_event.time - machine_property['load_unload_time']},{current_event.time}\n"
+                )
 
                 heapq.heappush(self.events, Event(
                     machine_name=machine_property['machine'],

@@ -2,6 +2,8 @@
 from database import Database
 from area import AreaDispatcher
 from typing import List, Tuple
+from gantt import draw_loading_gantt_chart_from_df
+import pandas as pd
 
 import os
 
@@ -85,7 +87,7 @@ if __name__ == "__main__":
     
     """
 
-    result_to_write: list[dict[str, int | str]] = []
+    result_to_write: list[dict[str, int | str | float]] = []
 
     for e in iter:
         print(f"Instance: {e['id']}")
@@ -190,7 +192,7 @@ if __name__ == "__main__":
 
         result_to_write.append({
             "INSTANCE": e["id"],
-            "AVERAGE_IDLE_TIME": int(minimum_waiting_time/60),
+            "AVERAGE_IDLE_TIME": int(minimum_waiting_time/60) / (len(layout["1"]["ETCH"]) + len(layout["1"]["PHOTO"]) + len(layout["1"]["TF"])),  # average idle time in minutes
             "STAFF_IN_AREA1": best_permutation[0],
             "STAFF_IN_AREA2": best_permutation[1],
             "STAFF_IN_AREA3": best_permutation[2],
@@ -260,13 +262,15 @@ WHEN NOT MATCHED THEN
         src.DISPATCH_IN_AREA2,
         src.DISPATCH_IN_AREA3
     )""", {"instance": result["INSTANCE"],
-            "average_idle_time": result["AVERAGE_IDLE_TIME"],
+            "average_idle_time": (result["AVERAGE_IDLE_TIME"]),
             "staff_area1": result["STAFF_IN_AREA1"],
             "staff_area2": result["STAFF_IN_AREA2"],
             "staff_area3": result["STAFF_IN_AREA3"],
             "dispatch_area1": result["DISPATCH_IN_AREA1"],
             "dispatch_area2": result["DISPATCH_IN_AREA2"],
             "dispatch_area3": result['DISPATCH_IN_AREA3']})
+
+    # plot the best permutation with gannt chart         
 
     db.close()
     print("Results written to database successfully.")
