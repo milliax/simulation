@@ -17,3 +17,5 @@ processor 數量 自訂
 3. final project
 
 正在努力生出來
+
+# 方品仁到此一遊
